@@ -31,7 +31,7 @@ GameManager::~GameManager() {
 void GameManager::createOpenGLContext() {
 	//Set OpenGL major an minor versions
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 
 	// Set OpenGL attributes
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1); // Use double buffering
@@ -110,8 +110,8 @@ void GameManager::createVAO() {
 	  * FIXME 1: Uncomment this part once you have read in the normals properly
 	  * using the model loader
 	  */
-	//model->getNormals()->bind();
-	//program->setAttributePointer("in_Normal", 3);
+	model->getNormals()->bind();
+	program->setAttributePointer("in_Normal", 3);
 	CHECK_GL_ERROR();
 	
 	//Unbind VBOs and VAO
@@ -149,8 +149,8 @@ void GameManager::renderMeshRecursive(MeshPart& mesh, const std::shared_ptr<Prog
 	  * FIXME 1: Uncomment once you have enabled normal loading etc.
 	  * and use of normals in your shader
 	  */
-	//glm::mat3 normal_matrix = glm::transpose(glm::inverse(glm::mat3(modelview_matrix)));
-	//glUniformMatrix3fv(program->getUniform("normal_matrix"), 1, 0, glm::value_ptr(normal_matrix));
+	glm::mat3 normal_matrix = glm::transpose(glm::inverse(glm::mat3(modelview_matrix)));
+	glUniformMatrix3fv(program->getUniform("normal_matrix"), 1, 0, glm::value_ptr(normal_matrix));
 
 	glDrawArrays(GL_TRIANGLES, mesh.first, mesh.count);
 	for (unsigned int i=0; i<mesh.children.size(); ++i)

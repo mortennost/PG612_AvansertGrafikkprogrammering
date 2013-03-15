@@ -20,7 +20,7 @@ Model::Model(std::string filename, bool invert) {
 	  * FIXME: Alter loadRecursive, so that it also loads normal data
 	  */
 	//Load the model recursively into data
-	loadRecursive(root, invert, vertex_data, scene, scene->mRootNode);
+	loadRecursive(root, invert, vertex_data, normal_data, scene, scene->mRootNode);
 	
 	//Set the transformation matrix for the root node
 	//These are hard-coded constants for the stanford bunny model.
@@ -28,10 +28,14 @@ Model::Model(std::string filename, bool invert) {
 	root.transform = glm::translate(root.transform, glm::vec3(0.016800813, -0.11015295, 0.0014822669));
 
 	n_vertices = vertex_data.size();
+	n_normals = normal_data.size();
 
 	//Create the VBOs from the data.
 	if (fmod(static_cast<float>(n_vertices), 3.0f) < 0.000001f) 
+	{
 		vertices.reset(new GLUtils::VBO(vertex_data.data(), n_vertices*sizeof(float)));
+		normals.reset(new GLUtils::VBO(normal_data.data(), n_normals * sizeof(float)));
+	}
 	else
 		THROW_EXCEPTION("The number of vertices in the mesh is wrong");
 }
@@ -41,7 +45,7 @@ Model::~Model() {
 }
 
 void Model::loadRecursive(MeshPart& part, bool invert,
-			std::vector<float>& vertex_data, const aiScene* scene, const aiNode* node) {
+			std::vector<float>& vertex_data, std::vector<float>& normal_data, const aiScene* scene, const aiNode* node) {
 	//update transform matrix. notice that we also transpose it
 	aiMatrix4x4 m = node->mTransformation;
 	for (int j=0; j<4; ++j)
@@ -59,6 +63,7 @@ void Model::loadRecursive(MeshPart& part, bool invert,
 
 		//Allocate data
 		vertex_data.reserve(vertex_data.size() + part.count*3);
+		normal_data.reserve(normal_data.size() + part.count * 3);
 
 		//Add the vertices from file
 		for (unsigned int t = 0; t < mesh->mNumFaces; ++t) {
@@ -72,6 +77,9 @@ void Model::loadRecursive(MeshPart& part, bool invert,
 				vertex_data.push_back(mesh->mVertices[index].x);
 				vertex_data.push_back(mesh->mVertices[index].y);
 				vertex_data.push_back(mesh->mVertices[index].z);
+				normal_data.push_back(mesh->mNormals[index].x);
+				normal_data.push_back(mesh->mNormals[index].y);
+				normal_data.push_back(mesh->mNormals[index].z);
 			}
 		}
 	}
@@ -79,6 +87,6 @@ void Model::loadRecursive(MeshPart& part, bool invert,
 	// load all children
 	for (unsigned int n = 0; n < node->mNumChildren; ++n) {
 		part.children.push_back(MeshPart());
-		loadRecursive(part.children.back(), invert, vertex_data, scene, node->mChildren[n]);
+		loadRecursive(part.children.back(), invert, vertex_data, normal_data, scene, node->mChildren[n]);
 	}
 }
